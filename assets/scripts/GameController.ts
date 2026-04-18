@@ -18,6 +18,7 @@ export class GameController extends Component {
         this.schedule(this.spawnFood, this.foodSpawnInterval);
     }
 
+    //TODO: set so that it only spawns untill a max of x on screen at once
     spawnFood() {
         let food:Node = instantiate(this.foodPrefab);
         food.setParent(this.node);
