@@ -1,8 +1,8 @@
 {
-  "ver": "1.0.27",
+  "ver": "1.0.26",
   "importer": "image",
   "imported": true,
-  "uuid": "34f235ef-0bb0-4e3e-9de2-52e7feafa91a",
+  "uuid": "5bc9a53b-71e1-4723-8063-a3a6926ed5e5",
   "files": [
     ".json",
     ".png"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "34f235ef-0bb0-4e3e-9de2-52e7feafa91a@6c48a",
+      "uuid": "5bc9a53b-71e1-4723-8063-a3a6926ed5e5@6c48a",
       "displayName": "inky",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "34f235ef-0bb0-4e3e-9de2-52e7feafa91a",
+        "imageUuidOrDatabaseUri": "5bc9a53b-71e1-4723-8063-a3a6926ed5e5",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,7 +34,7 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "34f235ef-0bb0-4e3e-9de2-52e7feafa91a@f9941",
+      "uuid": "5bc9a53b-71e1-4723-8063-a3a6926ed5e5@f9941",
       "displayName": "inky",
       "id": "f9941",
       "name": "spriteFrame",
@@ -113,7 +113,7 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "34f235ef-0bb0-4e3e-9de2-52e7feafa91a@6c48a",
+        "imageUuidOrDatabaseUri": "5bc9a53b-71e1-4723-8063-a3a6926ed5e5@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "fixAlphaTransparencyArtifacts": false,
     "hasAlpha": true,
-    "redirect": "34f235ef-0bb0-4e3e-9de2-52e7feafa91a@6c48a"
+    "redirect": "5bc9a53b-71e1-4723-8063-a3a6926ed5e5@f9941"
   }
 }
