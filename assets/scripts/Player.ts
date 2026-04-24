@@ -41,7 +41,10 @@ export class Player extends Component {
     private isPoweredUp: boolean = false
     private isInvincible: boolean = false
     private currentDir: Vec2 = new Vec2(1, 0)
+    private startPos: Vec3 = new Vec3()
+
     start() {
+        this.startPos = this.node.position.clone()
         input.on(Input.EventType.TOUCH_START, this.onTouchStart, this)
 
         this.touchPos = this.node.getWorldPosition().clone()
@@ -78,8 +81,16 @@ export class Player extends Component {
 
         if (this.health <= 0) {
             this.changeState('die')
+            this.gameController.gameOver();
+            this.scheduleOnce(() => {
+                director.loadScene('CircleSlasher');
+            }, 2);
             return
         }
+
+        this.node.setPosition(this.startPos)
+        const rb = this.getComponent(RigidBody2D)
+        if (rb) rb.linearVelocity = Vec2.ZERO
 
         this.isInvincible = true
         const sprite = this.getComponent(Sprite)
@@ -154,7 +165,7 @@ export class Player extends Component {
 
         const powerUpContainer = this.gameController
             ? this.gameController.powerUpContainer ||
-              this.gameController.foodContainer
+            this.gameController.foodContainer
             : null
         if (powerUpContainer) {
             for (let powerUp of powerUpContainer.children) {

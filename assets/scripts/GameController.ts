@@ -20,6 +20,9 @@ export class GameController extends Component {
     @property({ type: Label })
     private scoreLabel: Label
 
+    @property({ type: Label })
+    private gameOverLabel: Label
+
     @property({ type: CCInteger })
     private maxFood: number = 10
 
@@ -46,6 +49,7 @@ export class GameController extends Component {
     private score: number = 0
 
     start() {
+        this.gameOverLabel.onDisable();
         this.schedule(this.spawnFood, this.foodSpawnInterval)
         this.schedule(this.spawnPowerUp, this.powerUpSpawnInterval)
         this.updateScoreUI()
@@ -137,5 +141,13 @@ export class GameController extends Component {
             this.score += 200
             this.updateScoreUI()
         }
+    }
+
+    gameOver() {
+        if (this.gameOverLabel) {
+            this.gameOverLabel.onEnable();
+        }
+
+
     }
 }
