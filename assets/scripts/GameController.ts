@@ -44,14 +44,28 @@ export class GameController extends Component {
     @property({ type: CCInteger })
     private maxPowerUp: number = 2
 
+    @property({ type: [Prefab] })
+    private ghostPrefabs: Prefab[] = []
+
+    @property(Node)
+    public ghostContainer: Node
+
+    @property({ type: CCInteger })
+    private ghostSpawnInterval: number = 5
+
+    @property({ type: CCInteger })
+    private maxGhosts: number = 4
+
     private currFood: number = 0
     private currPowerUp: number = 0
+    private currGhosts: number = 0
     private score: number = 0
 
     start() {
         this.gameOverLabel.onDisable();
         this.schedule(this.spawnFood, this.foodSpawnInterval)
         this.schedule(this.spawnPowerUp, this.powerUpSpawnInterval)
+        this.schedule(this.spawnGhost, this.ghostSpawnInterval)
         this.updateScoreUI()
     }
 
@@ -127,6 +141,55 @@ export class GameController extends Component {
         this.currPowerUp++
     }
 
+    spawnGhost() {
+        if (this.ghostPrefabs.length === 0 || this.currGhosts >= this.maxGhosts)
+            return
+
+        let randomIndex = Math.floor(Math.random() * this.ghostPrefabs.length)
+        let ghostPrefab = this.ghostPrefabs[randomIndex]
+
+        let ghost: Node = instantiate(ghostPrefab)
+        let container = this.ghostContainer || this.node.parent || this.node
+        ghost.setParent(container)
+
+        let visibleSize = view.getVisibleSize()
+        let spawnDist = 100
+
+        let side = Math.floor(Math.random() * 4)
+        let spawnX = 0
+        let spawnY = 0
+
+        switch (side) {
+            case 0: // Atas
+                spawnX = (Math.random() - 0.5) * visibleSize.width
+                spawnY = visibleSize.height / 2 + spawnDist
+                break
+            case 1: // Bawah
+                spawnX = (Math.random() - 0.5) * visibleSize.width
+                spawnY = -visibleSize.height / 2 - spawnDist
+                break
+            case 2: // Kiri
+                spawnX = -visibleSize.width / 2 - spawnDist
+                spawnY = (Math.random() - 0.5) * visibleSize.height
+                break
+            case 3: // Kanan
+                spawnX = visibleSize.width / 2 + spawnDist
+                spawnY = (Math.random() - 0.5) * visibleSize.height
+                break
+        }
+
+        ghost.setPosition(spawnX, spawnY, 0)
+
+        const enemyComp = ghost.getComponent(Enemy)
+        if (enemyComp) {
+            const canvas = this.node.parent || this.node
+            const player = canvas.getComponentInChildren(Player)
+            enemyComp.initSpawn(player ? player.node : null)
+        }
+
+        this.currGhosts++
+    }
+
     updateScoreUI() {
         if (this.scoreLabel) {
             this.scoreLabel.string = this.score.toString()
@@ -137,7 +200,10 @@ export class GameController extends Component {
         if (!enemyNode || !enemyNode.isValid) return
         const enemy = enemyNode.getComponent(Enemy)
         if (enemy && enemy.state === 'vulnerable') {
-            enemy.respawn()
+            enemyNode.active = false
+            enemyNode.destroy()
+            this.currGhosts--
+
             this.score += 200
             this.updateScoreUI()
         }
