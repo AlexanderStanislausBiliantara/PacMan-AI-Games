@@ -20,7 +20,7 @@ export class Heart extends Component {
 
     loseLife() {
         if (this.lives > 0) {
-            this.lives--
+            this.lives--;
         }
         if (this.lives == 0) {
             this.heartLeft.active = false;
