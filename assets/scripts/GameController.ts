@@ -2,6 +2,7 @@ import {
     _decorator,
     CCInteger,
     Component,
+    director,
     instantiate,
     Label,
     Node,
@@ -20,9 +21,6 @@ export class GameController extends Component {
     @property({ type: Label })
     private scoreLabel: Label
 
-    @property({ type: Label })
-    private gameOverLabel: Label
-
     @property({ type: CCInteger })
     private maxFood: number = 10
 
@@ -38,36 +36,41 @@ export class GameController extends Component {
     @property(Node)
     public powerUpContainer: Node
 
-    @property({ type: CCInteger })
-    private powerUpSpawnInterval: number = 15
+    @property({ type:Node })
+    private modePopup:Node;
 
     @property({ type: CCInteger })
-    private maxPowerUp: number = 2
+    private powerUpSpawnInterval: number = 1;
 
-    private currFood: number = 0
-    private currPowerUp: number = 0
-    private score: number = 0
+    @property({ type: CCInteger })
+    private maxPowerUp: number = 2;
+
+    private currFood: number = 0;
+    private currPowerUp: number = 0;
+    private score: number = 0;
+    public mode:string = "";
 
     start() {
-        this.gameOverLabel.onDisable();
-        this.schedule(this.spawnFood, this.foodSpawnInterval)
-        this.schedule(this.spawnPowerUp, this.powerUpSpawnInterval)
-        this.updateScoreUI()
+        this.modePopup.active = true;
+        director.pause();
+        this.schedule(this.spawnFood, this.foodSpawnInterval);
+        this.schedule(this.spawnPowerUp, this.powerUpSpawnInterval);
+        this.updateScoreUI();
     }
 
     spawnFood() {
-        if (this.currFood >= this.maxFood || !this.foodPrefab) return
+        if (this.currFood >= this.maxFood || !this.foodPrefab) return;
 
-        let food: Node = instantiate(this.foodPrefab)
-        food.setParent(this.foodContainer)
+        let food: Node = instantiate(this.foodPrefab);
+        food.setParent(this.foodContainer);
 
-        let width = view.getVisibleSize().width
-        let height = view.getVisibleSize().height
-        let randX = (Math.random() - 0.5) * (width - 100)
-        let randY = (Math.random() - 0.5) * (height - 100)
+        let width = view.getVisibleSize().width;
+        let height = view.getVisibleSize().height;
+        let randX = (Math.random() - 0.5) * (width - 100);
+        let randY = (Math.random() - 0.5) * (height - 100);
 
         food.setPosition(randX, randY, 0)
-        this.currFood++
+        this.currFood++;
     }
 
     onFoodEaten(foodNode: Node) {
@@ -82,72 +85,76 @@ export class GameController extends Component {
     }
 
     onPowerUpEaten(powerUpNode: Node) {
-        if (!powerUpNode || !powerUpNode.active) return
+        if (!powerUpNode || !powerUpNode.active) return;
 
-        powerUpNode.active = false
-        powerUpNode.destroy()
+        powerUpNode.active = false;
+        powerUpNode.destroy();
 
-        this.currPowerUp--
+        this.currPowerUp--;
 
-        const canvas = this.node.parent || this.node
-        const enemies = canvas.getComponentsInChildren(Enemy)
+        const canvas = this.node.parent || this.node;
+        const enemies = canvas.getComponentsInChildren(Enemy);
         enemies.forEach((enemy) => {
-            enemy.setVulnerable(true)
+            enemy.setVulnerable(true);
         })
 
-        const player = canvas.getComponentInChildren(Player)
+        const player = canvas.getComponentInChildren(Player);
         if (player) {
-            player.setPowerUpEffect(true)
-            this.unschedule(this.resetPlayerEffect)
-            this.scheduleOnce(this.resetPlayerEffect, 10)
+            player.setPowerUpEffect(true);
+            this.unschedule(this.resetPlayerEffect);
+            this.scheduleOnce(this.resetPlayerEffect, 10);
         }
     }
 
     resetPlayerEffect() {
-        const canvas = this.node.parent || this.node
-        const player = canvas.getComponentInChildren(Player)
+        const canvas = this.node.parent || this.node;
+        const player = canvas.getComponentInChildren(Player);
         if (player) {
-            player.setPowerUpEffect(false)
+            player.setPowerUpEffect(false);
         }
     }
 
     spawnPowerUp() {
-        if (!this.powerUpPrefab || this.currPowerUp >= this.maxPowerUp) return
+        if (!this.powerUpPrefab || this.currPowerUp >= this.maxPowerUp) return;
 
-        let powerUp: Node = instantiate(this.powerUpPrefab)
-        let container = this.powerUpContainer || this.foodContainer
-        if (container) powerUp.setParent(container)
+        let powerUp: Node = instantiate(this.powerUpPrefab);
+        let container = this.powerUpContainer || this.foodContainer;
+        if (container) powerUp.setParent(container);
 
-        let width = view.getVisibleSize().width
-        let height = view.getVisibleSize().height
-        let randX = (Math.random() - 0.5) * (width - 100)
-        let randY = (Math.random() - 0.5) * (height - 100)
+        let width = view.getVisibleSize().width;
+        let height = view.getVisibleSize().height;
+        let randX = (Math.random() - 0.5) * (width - 100);
+        let randY = (Math.random() - 0.5) * (height - 100);
 
-        powerUp.setPosition(randX, randY, 0)
-        this.currPowerUp++
+        powerUp.setPosition(randX, randY, 0);
+        this.currPowerUp++;
     }
 
     updateScoreUI() {
         if (this.scoreLabel) {
-            this.scoreLabel.string = this.score.toString()
+            this.scoreLabel.string = this.score.toString();
         }
     }
 
     onGhostEaten(enemyNode: Node) {
-        if (!enemyNode || !enemyNode.isValid) return
-        const enemy = enemyNode.getComponent(Enemy)
+        if (!enemyNode || !enemyNode.isValid) return;
+        const enemy = enemyNode.getComponent(Enemy);
         if (enemy && enemy.state === 'vulnerable') {
-            enemy.respawn()
-            this.score += 200
-            this.updateScoreUI()
+            enemy.respawn();
+            this.score += 200;
+            this.updateScoreUI();
         }
     }
 
-    gameOver() {
-        if (this.gameOverLabel) {
-            this.gameOverLabel.onEnable();
-        }
+    playerModeButton() {
+        this.mode = "player";
+        this.modePopup.active = false;
+        director.resume();
+    }
 
-
+    botModeButton() {
+        this.mode = "bot";
+        this.modePopup.active = false;
+        director.resume();
     }
 }

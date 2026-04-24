@@ -41,25 +41,23 @@ export class Player extends Component {
     private isPoweredUp: boolean = false
     private isInvincible: boolean = false
     private currentDir: Vec2 = new Vec2(1, 0)
-    private startPos: Vec3 = new Vec3()
 
     start() {
-        this.startPos = this.node.position.clone()
-        input.on(Input.EventType.TOUCH_START, this.onTouchStart, this)
+        input.on(Input.EventType.TOUCH_START, this.onTouchStart, this);
 
-        this.touchPos = this.node.getWorldPosition().clone()
+        this.touchPos = this.node.getWorldPosition().clone();
 
-        const sprite = this.getComponent(Sprite)
+        const sprite = this.getComponent(Sprite);
         if (sprite) {
-            this.originalColor = sprite.color.clone()
+            this.originalColor = sprite.color.clone();
         }
 
-        const rb = this.getComponent(RigidBody2D)
+        const rb = this.getComponent(RigidBody2D);
         if (rb) {
-            rb.enabledContactListener = false
+            rb.enabledContactListener = false;
         }
 
-        this.state = 'move'
+        this.state = 'move';
     }
 
     setPowerUpEffect(active: boolean) {
@@ -81,16 +79,8 @@ export class Player extends Component {
 
         if (this.health <= 0) {
             this.changeState('die')
-            this.gameController.gameOver();
-            this.scheduleOnce(() => {
-                director.loadScene('CircleSlasher');
-            }, 2);
             return
         }
-
-        this.node.setPosition(this.startPos)
-        const rb = this.getComponent(RigidBody2D)
-        if (rb) rb.linearVelocity = Vec2.ZERO
 
         this.isInvincible = true
         const sprite = this.getComponent(Sprite)
@@ -114,62 +104,99 @@ export class Player extends Component {
 
     changeState(nextState) {
         if (nextState == 'die') {
-            this.state = nextState
-            input.off(Input.EventType.TOUCH_START, this.onTouchStart, this)
-            const rb = this.getComponent(RigidBody2D)
-            if (rb) rb.linearVelocity = Vec2.ZERO
+            this.state = nextState;
+            input.off(Input.EventType.TOUCH_START, this.onTouchStart, this);
+            const rb = this.getComponent(RigidBody2D);
+            if (rb) rb.linearVelocity = Vec2.ZERO;
         } else {
-            this.state = nextState
+            this.state = nextState;
         }
     }
 
     onTouchStart(event: EventTouch) {
-        if (this.state == 'die') return
-        let uiPos = event.getUILocation()
-        let width = view.getVisibleSize().width
-        let height = view.getVisibleSize().height
+        if (this.state == 'die') {
+            return;
+        }
 
-        this.touchPos = new Vec3(uiPos.x - width / 2, uiPos.y - height / 2, 0)
+        if (this.gameController && this.gameController.mode === "bot") {
+            return;
+        }
+
+        let uiPos = event.getUILocation();
+        let width = view.getVisibleSize().width;
+        let height = view.getVisibleSize().height;
+
+        this.touchPos = new Vec3(uiPos.x - width / 2, uiPos.y - height / 2, 0);
 
         let deltaPos = this.touchPos.clone().subtract(this.node.position)
         if (deltaPos.length() > 0) {
             this.currentDir = new Vec2(deltaPos.x, deltaPos.y).normalize()
         }
 
-        this.changeState('move')
+        this.changeState('move');
     }
 
     update(deltaTime: number) {
         if (this.state == 'move') {
-            const rb = this.getComponent(RigidBody2D)
+            const rb = this.getComponent(RigidBody2D);
             if (rb) {
+                if (this.gameController && this.gameController.mode === "bot") {
+                    let closestFood:Node = null;
+                    let minDistance = Infinity;
+                    const myPos = this.node.worldPosition;
+
+                    for (let food of this.gameController.foodContainer.children) {
+                        if (!food.active) {
+                            continue;
+                        }
+
+                        let dist = Vec3.distance(myPos, food.worldPosition);
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            closestFood = food;
+                        }
+                    }
+
+                    if (closestFood) {
+                        let targetDir = new Vec3();
+                        Vec3.subtract(targetDir, closestFood.worldPosition, myPos);
+                        targetDir.normalize();
+
+                        this.currentDir.x = targetDir.x;
+                        this.currentDir.y = targetDir.y;
+                    }
+                }
+
                 rb.linearVelocity = this.currentDir
                     .clone()
-                    .multiplyScalar(this.baseSpeed)
+                    .multiplyScalar(this.baseSpeed);
             }
         } else if (this.state == 'idle') {
-            const rb = this.getComponent(RigidBody2D)
-            if (rb) rb.linearVelocity = Vec2.ZERO
+            const rb = this.getComponent(RigidBody2D);
+            if (rb) rb.linearVelocity = Vec2.ZERO;
         }
 
-        const myPos = this.node.worldPosition
+        const myPos = this.node.worldPosition;
 
         if (this.gameController && this.gameController.foodContainer) {
             for (let food of this.gameController.foodContainer.children) {
-                if (!food.active) continue
+                if (!food.active) continue;
+
                 if (Vec3.distance(myPos, food.worldPosition) < 40) {
-                    this.gameController.onFoodEaten(food)
+                    this.gameController.onFoodEaten(food);
                 }
             }
         }
 
         const powerUpContainer = this.gameController
             ? this.gameController.powerUpContainer ||
-            this.gameController.foodContainer
-            : null
+              this.gameController.foodContainer
+            : null;
+
         if (powerUpContainer) {
             for (let powerUp of powerUpContainer.children) {
-                if (!powerUp.active) continue
+                if (!powerUp.active) continue;
+
                 if (
                     powerUp.getComponent(PowerUp) ||
                     powerUp.name.toLowerCase().includes('powerup')
@@ -181,19 +208,19 @@ export class Player extends Component {
             }
         }
 
-        const scene = director.getScene()
+        const scene = director.getScene();
         if (scene) {
-            const enemies = scene.getComponentsInChildren(Enemy)
+            const enemies = scene.getComponentsInChildren(Enemy);
             for (let enemy of enemies) {
-                if (!enemy.node.active) continue
+                if (!enemy.node.active) continue;
 
-                let dist = Vec3.distance(myPos, enemy.node.worldPosition)
+                let dist = Vec3.distance(myPos, enemy.node.worldPosition);
 
                 if (dist < 80) {
                     if (enemy.state === 'vulnerable') {
-                        this.gameController.onGhostEaten(enemy.node)
+                        this.gameController.onGhostEaten(enemy.node);
                     } else {
-                        this.takeDamage()
+                        this.takeDamage();
                     }
                 }
             }
